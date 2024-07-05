@@ -145,7 +145,7 @@ public:
         conversation += messages[i].content;
         conversation += "\n";
       }
-      conversation += `Keep in mind context. Answer to this:\n###\n ${prompt}.`
+      conversation += `Keep in mind context. Answer to this:\n###\n ${prompt}. Here is current solution: ${code}`
       console.log(conversation);
       
       sendMessage(conversation);
