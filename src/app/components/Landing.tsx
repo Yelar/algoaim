@@ -49,8 +49,8 @@ Output: [0,1]
 Constraints:
 
 2 <= nums.length <= 104
--109 <= nums[i] <= 109
--109 <= target <= 109
+-10^9 <= nums[i] <= 10^9
+-10^9 <= target <= 10^9
 Only one valid answer exists.
 
 You can return the answer in any order.*/
@@ -75,30 +75,30 @@ public:
   useEffect(() => {
     const storedMessages = localStorage.getItem("messages");
     console.log(storedMessages);
-    if (storedMessages) {
+    if (storedMessages !== null && storedMessages !== undefined) {
       setMessages(JSON.parse(storedMessages));
     }
   }, []);
 
-  // useEffect(() => {
-  //   const fetchResponse = async () => {
-  //     if (clickCount > 0 && clickCount % 2 === 0) {
-  //       sendAudioToBackend();
-  //       const requestBody = {
-  //         chat: messages,
-  //       };
-  //       try {
-  //         const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
-  //         setMessages(res.data.chat); // Assuming the response has a 'chat' field containing the updated messages
-  //         localStorage.setItem("messages", JSON.stringify(res.data.chat));
-  //       } catch (e) {
-  //         console.log("Error:", e);
-  //       }
-  //     }
-  //   };
+  useEffect(() => {
+    const fetchResponse = async () => {
+      if (clickCount > 0 && clickCount % 2 === 0) {
+        sendAudioToBackend();
+        const requestBody = {
+          chat: messages,
+        };
+        try {
+          const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+          setMessages(res.data.chat); // Assuming the response has a 'chat' field containing the updated messages
+          localStorage.setItem("messages", JSON.stringify(res.data.chat));
+        } catch (e) {
+          console.log("Errortt:", e);
+        }
+      }
+    };
 
-  //   fetchResponse();
-  // }, [clickCount]);
+    fetchResponse();
+  }, [clickCount]);
 
   const sendAudioToBackend = async () => {
     if (!audioBlob) return;
@@ -251,7 +251,7 @@ public:
             />
             <button type="submit" className="p-2 bg-blue-500 text-white rounded">Send</button>
           </form>
-          {/* <button
+          <button
             onClick={handleClick}
             className={`bg-red-${clickCount % 2 === 1 ? 400 : 100} p-2 rounded`}
           >
@@ -269,7 +269,7 @@ public:
                 d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"
               />
             </svg>
-          </button> */}
+          </button>
         </div>
       </div>
     </div>
