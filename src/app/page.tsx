@@ -18,7 +18,7 @@ export default function Home() {
     if (prompt.trim() !== '') {
       let tmp = messages;
       tmp.push({role: "user", content: prompt});
-      tmp.push({role: "interviewer", content: ""});
+      tmp.push({role: "assistant", content: ""});
       setMessages(tmp);
       let conversation = "Here is the previous conversation: ";
       for (let i = 0; i < messages.length - 1; i++) {

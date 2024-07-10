@@ -9,6 +9,7 @@ import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
 import { useAudio } from "react-use";
 // import "react-toastify/dist/ReactToastify.css";
 import Message from "./Message";
+import { StringToBoolean } from "class-variance-authority/types";
 
 
 interface OutputDetailsType {
@@ -21,46 +22,17 @@ interface OutputDetailsType {
   time: number;
 }
 
+interface msg {
+  role: string;
+  content: string;
+}
+
 function Landing(){
+  // localStorage.clear();
+  const { messages, sendMessage, setMessages } = useSocketIO('http://localhost:3002');
+  const [prompt, setPrompt] = useState('');
   const { isRecording, audioBlob, startRecording, stopRecording } = useAudioRecorder();
-  const [javascriptDefault, setJavascriptDefault] = useState(`/* C++\n Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.
-
- 
-
-Example 1:
-
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
-Example 2:
-
-Input: nums = [3,2,4], target = 6
-Output: [1,2]
-Example 3:
-
-Input: nums = [3,3], target = 6
-Output: [0,1]
- 
-
-Constraints:
-
-2 <= nums.length <= 104
--10^9 <= nums[i] <= 10^9
--10^9 <= target <= 10^9
-Only one valid answer exists.
-
-You can return the answer in any order.*/
-
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        
-    }
-};`);
+  const [javascriptDefault, setJavascriptDefault] = useState(`/* C++`);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [audio, state, controls] = useAudio({
     src: audioSrc || '',
@@ -69,36 +41,29 @@ public:
   const [clickCount, setClickCount] = useState(0);
   useEffect(() => {
     if (audioBlob) {
+      console.log(audioBlob);
       setAudioSrc(URL.createObjectURL(audioBlob));
+      sendAudioToBackend();
     }
   }, [audioBlob]);
   useEffect(() => {
     const storedMessages = localStorage.getItem("messages");
     console.log(storedMessages);
-    if (storedMessages !== null && storedMessages !== undefined) {
-      setMessages(JSON.parse(storedMessages));
+    if (storedMessages) {
+      try {
+        const parsedMessages: msg[] = JSON.parse(storedMessages);
+        if (Array.isArray(parsedMessages)) {
+          setMessages(parsedMessages);
+        } else {
+          console.error("Stored messages are not an array");
+          setMessages([]); // Fallback to empty array
+        }
+      } catch (error) {
+        console.error("Error parsing stored messages:", error);
+        setMessages([]); // Fallback to empty array
+      }
     }
   }, []);
-
-  useEffect(() => {
-    const fetchResponse = async () => {
-      if (clickCount > 0 && clickCount % 2 === 0) {
-        sendAudioToBackend();
-        const requestBody = {
-          chat: messages,
-        };
-        try {
-          const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
-          setMessages(res.data.chat); // Assuming the response has a 'chat' field containing the updated messages
-          localStorage.setItem("messages", JSON.stringify(res.data.chat));
-        } catch (e) {
-          console.log("Errortt:", e);
-        }
-      }
-    };
-
-    fetchResponse();
-  }, [clickCount]);
 
   const sendAudioToBackend = async () => {
     if (!audioBlob) return;
@@ -129,15 +94,14 @@ public:
     }
   };
 
-  const { messages, sendMessage, setMessages } = useSocketIO('http://localhost:3002');
-  const [prompt, setPrompt] = useState('');
+ 
 
   const handleSend = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (prompt.trim() !== '') {
       let tmp = messages;
       tmp.push({role: "user", content: prompt});
-      tmp.push({role: "interviewer", content: ""});
+      tmp.push({role: "assistant", content: ""});
       setMessages(tmp);
       let conversation = "Here is the previous conversation: ";
       for (let i = 0; i < messages.length - 1; i++) {
@@ -217,7 +181,25 @@ public:
     setClickCount(prevCount => 1 + prevCount);
     if (isRecording) {
       stopRecording();
-      
+          const requestBody = {
+            chat: messages,
+          };
+          try {
+            const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+          
+            // Use res.data directly if it's already parsed
+            const data = res.data;
+          
+            if (data.chat !== undefined) {
+              setMessages(data.chat);
+              localStorage.setItem("messages", JSON.stringify(data.chat));
+            }
+          
+            console.log(messages);
+            
+          } catch (e) {
+            console.log("Error:", e);
+          }
     } else {
       startRecording();
     }
@@ -253,7 +235,7 @@ public:
           </form>
           <button
             onClick={handleClick}
-            className={`bg-red-${clickCount % 2 === 1 ? 400 : 100} p-2 rounded`}
+            className={`bg-red-${isRecording ? 400 : 100} p-2 rounded`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
