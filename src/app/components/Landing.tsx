@@ -31,24 +31,23 @@ function Landing(){
   // localStorage.clear();
   const { messages, sendMessage, setMessages } = useSocketIO('http://localhost:3002');
   const [prompt, setPrompt] = useState('');
-  const { isRecording, audioBlob, startRecording, stopRecording } = useAudioRecorder();
+  const { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying } = useAudioRecorder();
   const [javascriptDefault, setJavascriptDefault] = useState(`/* C++`);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audio, state, controls] = useAudio({
     src: audioSrc || '',
   });
+  const [audioResBlob, setAudioResBlob] = useState<Blob | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [clickCount, setClickCount] = useState(0);
-
   useEffect(() => {
     const processAudioBlob = async () => {
 
       if (!isRecording)
-      if (audioBlob) {
+      if (audioBlob !== null) {
         console.log("y");
         console.log(audioBlob);
-        setAudioSrc(URL.createObjectURL(audioBlob));
-  
         const requestBody = {
           chat: messages,
         };
@@ -60,12 +59,15 @@ function Landing(){
           const data = res.data;
           
           if (data.chat !== undefined) {
-            setMessages(data.chat);
-            localStorage.setItem("messages", JSON.stringify(data.chat));
+            const updatedMessages = [...messages, ...data.chat];
+            setMessages(updatedMessages);
+            localStorage.setItem("messages", JSON.stringify(messages));
           }
-          
+          const stream = await axios.get(`http://localhost:3002/api/v1/${data.curMessage}`);
+          setAudioSrc(`http://localhost:3002/api/v1/${data.curMessage}`);
+          const audio = new Audio(`http://localhost:3002/api/v1/${data.curMessage}`);
+          await audio.play();
           console.log(messages);
-          
         } catch (e) {
           console.log("Error:", e);
         }
@@ -74,6 +76,31 @@ function Landing(){
   
     processAudioBlob();
   }, [isRecording]);
+  useEffect(() => {
+    if (audioSrc) {
+      const audio = new Audio(audioSrc);
+
+      const handleAudioPlay = () => {
+        setIsPlaying(true);
+      };
+
+      const handleAudioEnd = () => {
+        setIsPlaying(false);
+      };
+
+      audio.addEventListener('play', handleAudioPlay);
+      audio.addEventListener('ended', handleAudioEnd);
+
+      audio.play();
+
+      return () => {
+        audio.removeEventListener('play', handleAudioPlay);
+        audio.removeEventListener('ended', handleAudioEnd);
+      };
+    }
+  }, [audioSrc]);
+
+
   useEffect(() => {
     startRecording();
     const storedMessages = localStorage.getItem("messages");
@@ -284,6 +311,7 @@ function Landing(){
           </button>
         </div>
       </div>
+
     </div>
   );
 };

@@ -4,6 +4,7 @@ import hark from 'hark';
 
 export const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
 
@@ -38,13 +39,13 @@ export const useAudioRecorder = () => {
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
         const speech = hark(stream, {});
-
+        if (!isPlaying)
         speech.on("speaking", () => {
+          
           console.log("Speaking!");
             recorder.start();
           setIsRecording(true);
         });
-
         speech.on("stopped_speaking", () => {
           console.log("Not Speaking");
             recorder.stop();
@@ -75,5 +76,5 @@ export const useAudioRecorder = () => {
     }
   }, [mediaRecorder]);
 
-  return { isRecording, audioBlob, startRecording, stopRecording };
+  return { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying};
 };
