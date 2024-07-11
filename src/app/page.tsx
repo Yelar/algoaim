@@ -8,6 +8,7 @@ import useSocketIO from "@/lib/hooks/useWebsocket";
 import MicrophoneComponent from "./components/Dict";
 import Landing from "./components/Landing";
 import AudioRecorder from "./components/Recorder";
+import MyHark from "./components/harkTest";
 
 export default function Home() {
   const { messages, sendMessage, setMessages } = useSocketIO('http://localhost:3002');

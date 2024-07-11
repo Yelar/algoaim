@@ -39,16 +39,43 @@ function Landing(){
   });
   const [isSending, setIsSending] = useState(false);
   const [clickCount, setClickCount] = useState(0);
+
   useEffect(() => {
-    if (audioBlob) {
-      
-      if (!audioBlob) return;
-      console.log(audioBlob);
-      sendAudioToBackend();
-      setAudioSrc(URL.createObjectURL(audioBlob));
-    }
-  }, [audioBlob]);
+    const processAudioBlob = async () => {
+
+      if (!isRecording)
+      if (audioBlob) {
+        console.log("y");
+        console.log(audioBlob);
+        setAudioSrc(URL.createObjectURL(audioBlob));
+  
+        const requestBody = {
+          chat: messages,
+        };
+  
+        try {
+          await sendAudioToBackend();
+          const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+          
+          const data = res.data;
+          
+          if (data.chat !== undefined) {
+            setMessages(data.chat);
+            localStorage.setItem("messages", JSON.stringify(data.chat));
+          }
+          
+          console.log(messages);
+          
+        } catch (e) {
+          console.log("Error:", e);
+        }
+      }
+    };
+  
+    processAudioBlob();
+  }, [isRecording]);
   useEffect(() => {
+    startRecording();
     const storedMessages = localStorage.getItem("messages");
     console.log(storedMessages);
     if (storedMessages) {
@@ -178,7 +205,7 @@ function Landing(){
   // //     progress: undefined,
   // //   });
   // // };
-
+  
   const handleClick = async () => {
     setClickCount(prevCount => 1 + prevCount);
     if (isRecording) {
