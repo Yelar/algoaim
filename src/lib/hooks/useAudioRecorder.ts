@@ -1,5 +1,4 @@
-// hooks/useAudioRecorder.ts
-import { useState, useCallback} from 'react';
+import { useState, useCallback } from 'react';
 
 export const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -13,11 +12,17 @@ export const useAudioRecorder = () => {
         setMediaRecorder(recorder);
 
         recorder.ondataavailable = (event) => {
-          setAudioBlob(event.data);
+          if (event.data.size > 0) {
+            setAudioBlob(event.data);
+          }
         };
-        
-        recorder.start();
 
+        recorder.onstop = () => {
+          setIsRecording(false);
+          console.log("stopped");
+        };
+
+        recorder.start();
         setIsRecording(true);
       })
       .catch(error => console.error('Error accessing microphone:', error));
@@ -26,20 +31,8 @@ export const useAudioRecorder = () => {
   const stopRecording = useCallback(() => {
     if (mediaRecorder) {
       mediaRecorder.stop();
-      navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        const recorder = new MediaRecorder(stream);
-        setMediaRecorder(recorder);
-
-        recorder.ondataavailable = (event) => {
-          setAudioBlob(event.data);
-          console.log("bruh", audioBlob);
-        };
-      })
-      .catch(error => console.error('Error accessing microphone:', error));
-      setIsRecording(false);
-      
     }
   }, [mediaRecorder]);
+
   return { isRecording, audioBlob, startRecording, stopRecording };
 };

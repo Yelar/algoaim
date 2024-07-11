@@ -41,9 +41,11 @@ function Landing(){
   const [clickCount, setClickCount] = useState(0);
   useEffect(() => {
     if (audioBlob) {
+      
+      if (!audioBlob) return;
       console.log(audioBlob);
-      setAudioSrc(URL.createObjectURL(audioBlob));
       sendAudioToBackend();
+      setAudioSrc(URL.createObjectURL(audioBlob));
     }
   }, [audioBlob]);
   useEffect(() => {
@@ -181,6 +183,7 @@ function Landing(){
     setClickCount(prevCount => 1 + prevCount);
     if (isRecording) {
       stopRecording();
+      await sendAudioToBackend();
           const requestBody = {
             chat: messages,
           };
