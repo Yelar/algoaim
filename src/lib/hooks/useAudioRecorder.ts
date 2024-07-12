@@ -7,7 +7,7 @@ export const useAudioRecorder = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const startRecording = useCallback(async () => {
     // navigator.mediaDevices.getUserMedia({ audio: true })
     //   .then(stream => {
@@ -39,13 +39,16 @@ export const useAudioRecorder = () => {
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
         const speech = hark(stream, {});
-        if (!isPlaying)
+        if(audioElement?.ended || audioElement === null) {
         speech.on("speaking", () => {
           
+            console.log('NIGGGGAAAA');
           console.log("Speaking!");
             recorder.start();
           setIsRecording(true);
         });
+      }
+
         speech.on("stopped_speaking", () => {
           console.log("Not Speaking");
             recorder.stop();
@@ -76,5 +79,5 @@ export const useAudioRecorder = () => {
     }
   }, [mediaRecorder]);
 
-  return { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying};
+  return { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying, audioElement, setAudioElement};
 };
