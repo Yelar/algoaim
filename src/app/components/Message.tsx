@@ -11,7 +11,7 @@ const Message = (props : msgProps) => {
   <div className="flex items-start gap-4">
     <div className="bg-gray-100 dark:bg-gray-800 overflow-scroll rounded-lg p-3 max-w-[70%]">
       <div className="flex items-center gap-2 mb-1">
-        <div className="font-medium">{role}</div>
+        <div className="font-medium">{"interviewer"}</div>
       </div>
       <p className="text-sm">{content}</p>
     </div>
