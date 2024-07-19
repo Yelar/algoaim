@@ -46,7 +46,7 @@ const useSocketIO = (url: string) => {
     };
   }, [url]);
 
-  const sendMessage = (message: string) => {
+  const sendMessage = (message: any) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit('message', message);
     } else {

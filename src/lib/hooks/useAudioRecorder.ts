@@ -3,12 +3,14 @@ import hark from 'hark';
 
 
 export const useAudioRecorder = () => {
+  const [audioMode, setAudioMode] = useState<boolean>(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const startRecording = useCallback(async () => {
+    
     // navigator.mediaDevices.getUserMedia({ audio: true })
     //   .then(stream => {
     //     const recorder = new MediaRecorder(stream);
@@ -38,13 +40,14 @@ export const useAudioRecorder = () => {
         });
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
-        const speech = hark(stream, {});
+        const speech = hark(stream, {interval: 50});
         if(audioElement?.ended || audioElement === null) {
         speech.on("speaking", () => {
           
             console.log('NIGGGGAAAA');
           console.log("Speaking!");
             recorder.start();
+            speech.setInterval(50);
           setIsRecording(true);
         });
       }
@@ -52,15 +55,15 @@ export const useAudioRecorder = () => {
         speech.on("stopped_speaking", () => {
           console.log("Not Speaking");
             recorder.stop();
-
+            speech.setInterval(50);
           setIsRecording(false);
         });
         recorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
-            console.log("blobblob");
             const blob = e.data;
             setAudioBlob(blob);
             console.log(blob);
+            
             // Handle the blob data (e.g., upload to server, save locally, etc.)
           }
         };
@@ -79,5 +82,5 @@ export const useAudioRecorder = () => {
     }
   }, [mediaRecorder]);
 
-  return { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying, audioElement, setAudioElement};
+  return { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying, audioElement, setAudioElement, audioMode, setAudioMode};
 };
