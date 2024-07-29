@@ -53,7 +53,7 @@ interface msg {
 function Landing({title} : any){
   // localStorage.clear();
   const router = useRouter();
-  const {messages, sendMessage, setMessages,currentStage, setCurrentStage } = useSocketIO('http://localhost:3002');
+  const {messages, sendMessage, setMessages,currentStage, setCurrentStage } = useSocketIO('http://iphone-scrapping.onrender.com');
   const [prompt, setPrompt] = useState('');
   const [solution, setSolution] = useState<string>("");
   const [language, setLanguage] = useState("cpp");
@@ -135,7 +135,7 @@ function Landing({title} : any){
       
       try {
         
-        const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+        const res = await axios.post('http://iphone-scrapping.onrender.com/api/v1/response/', requestBody);
         
         const data = res.data;
         if (data.chat[0].message == '') {
@@ -147,9 +147,9 @@ function Landing({title} : any){
           localStorage.setItem("messages", JSON.stringify(messages));
         }
         //console.log(data.curMessage);
-        const stream = await axios.get(`http://localhost:3002/api/v1/${data.curMessage}`);
-        setAudioSrc(`http://localhost:3002/api/v1/${data.curMessage}`);
-        // const audio = new Audio(`http://localhost:3002/api/v1/${data.curMessage}`);
+        const stream = await axios.get(`http://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
+        setAudioSrc(`http://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
+        // const audio = new Audio(`http://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
         // await audio.play();
         if (data.isOver) {
           setCurrentStage(currentStage + 1);
@@ -206,9 +206,9 @@ function Landing({title} : any){
           
         // Push all requests into reqPromises
         const reqPromises: Promise<any>[] = [
-          axios.get(`http://localhost:3002/api/v1/${title}/description`),
-          axios.get(`http://localhost:3002/api/v1/${title}/snippets`),
-          axios.get(`http://localhost:3002/api/v1/${title}/solution`)
+          axios.get(`http://iphone-scrapping.onrender.com/api/v1/${title}/description`),
+          axios.get(`http://iphone-scrapping.onrender.com/api/v1/${title}/snippets`),
+          axios.get(`http://iphone-scrapping.onrender.com/api/v1/${title}/solution`)
         ];
 
         // Wait for all requests to complete
@@ -251,7 +251,7 @@ function Landing({title} : any){
       
   //     //console.log("haha", audioBlob);
       
-  //     const response = await axios.post('http://localhost:3002/api/v1/upload/', formData, {
+  //     const response = await axios.post('http://iphone-scrapping.onrender.com/api/v1/upload/', formData, {
   //       headers: {
   //         'Content-Type': 'multipart/form-data',
   //       },
@@ -361,7 +361,7 @@ function Landing({title} : any){
             chat: messages,
           };
           try {
-            const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+            const res = await axios.post('http://iphone-scrapping.onrender.com/api/v1/response/', requestBody);
           
             // Use res.data directly if it's already parsed
             const data = res.data;
@@ -382,7 +382,7 @@ function Landing({title} : any){
   };
   const onLanguageChange= async (value:any) => {
     let id = 0;
-    const snippets = await axios.get(`http://localhost:3002/api/v1/${title}/snippets`);
+    const snippets = await axios.get(`http://iphone-scrapping.onrender.com/api/v1/${title}/snippets`);
     const defaultCode =snippets.data.snippets;
     //console.log("blya", snippets.data.snippets[0].code);
     for (let i = 0; i < 10; i++) {

@@ -27,7 +27,7 @@ const AudioRecorder: React.FC = () => {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recorded_audio.wav');
       
-      const response = await axios.post('http://localhost:3002/api/v1/interview/', formData, {
+      const response = await axios.post('http://iphone-scrapping.onrender.com/api/v1/interview/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
