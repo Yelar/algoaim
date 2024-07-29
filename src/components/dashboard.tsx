@@ -19,7 +19,7 @@ export const Dashboard: React.FC = () => {
   const [questions, setQuestions] = useState<IQuestion[]>([]);
 
   useEffect(() => {
-    axios.get('http://iphone-scrapping.onrender.com/api/v1/all/problems')
+    axios.get('https://iphone-scrapping.onrender.com/api/v1/all/problems')
       .then(response => {
         const data = response.data.map((item: any) => ({
           title: item.title,

@@ -38,11 +38,11 @@ const Evaluation = ({params} : any) => {
         const code = JSON.parse(localStorage.getItem('code') || '{}');
         const title = params.title_slug;
         try {
-          const question = await axios.get(`http://iphone-scrapping.onrender.com/api/v1/${title}/questionInfo`);
+          const question = await axios.get(`https://iphone-scrapping.onrender.com/api/v1/${title}/questionInfo`);
           console.log(question.data);
           const questionId = question.data.questionId;
           console.log("sadad", questionId);
-          const response = await axios.post('http://iphone-scrapping.onrender.com/api/v1/analyse', { chat: messages, currentStage: 5 })
+          const response = await axios.post('https://iphone-scrapping.onrender.com/api/v1/analyse', { chat: messages, currentStage: 5 })
           setAnalysis(response.data);
           setLoading(false);
           setIsErr(true);
@@ -57,13 +57,13 @@ const Evaluation = ({params} : any) => {
             solution_code: codee
           }
           console.log(requestBody);
-          const res = await axios.post("http://iphone-scrapping.onrender.com/api/v1/submit", requestBody);
+          const res = await axios.post("https://iphone-scrapping.onrender.com/api/v1/submit", requestBody);
           const submissionId = res.data.submission_id;
           console.log("subID", submissionId);
-          let checkData = await axios.get(`http://iphone-scrapping.onrender.com/api/v1/check/${Number(submissionId)}`);
+          let checkData = await axios.get(`https://iphone-scrapping.onrender.com/api/v1/check/${Number(submissionId)}`);
           while(checkData.data.state !== "SUCCESS" ) {
             console.log(checkData.data);
-            checkData = await axios.get(`http://iphone-scrapping.onrender.com/api/v1/check/${submissionId}`);
+            checkData = await axios.get(`https://iphone-scrapping.onrender.com/api/v1/check/${submissionId}`);
           }
           console.log(checkData.data);
           if (checkData.data.status_msg === 'Accepted') {
