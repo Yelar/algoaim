@@ -1,4 +1,5 @@
 'use client';
+import { Code } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -10,7 +11,8 @@ interface msg {
 const useSocketIO = (url: string) => {
   const [messages, setMessages] = useState<msg[]>([]);
   const socketRef = useRef<Socket | null>(null);
-
+  const [currentStage, setCurrentStage] = useState(0);
+  
   useEffect(() => {
     const socket = io(url);
 
@@ -18,17 +20,21 @@ const useSocketIO = (url: string) => {
       console.log('Socket.IO connection opened');
     });
     
-    socket.on('message', (data: msg) => {
+    socket.on('message', (data: any) => {
       const additionalString = ""; // Define the string to append
 
       setMessages(prevMessages => {
         const lastMessage = prevMessages[prevMessages.length - 1].content + data.content;
-        const tmp = [...prevMessages.slice(0, -1), {role: prevMessages[prevMessages.length - 1].role,
-            content: lastMessage
+        const tmp = [...prevMessages, {role: "assistant",
+            content: data.gptResponse
         }];
         localStorage.setItem("messages", JSON.stringify(tmp));
         return tmp;
       });
+      console.log(data);
+      if (data.isOver){ setCurrentStage(currentStage + 1);
+      console.log("stage", currentStage + 1);}
+      
     });
 
     socket.on('error', (error: any) => {
@@ -46,15 +52,21 @@ const useSocketIO = (url: string) => {
     };
   }, [url]);
 
-  const sendMessage = (message: any) => {
+  const sendMessage = (code : string, solution : string) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('message', message);
+      const requestBody = {
+        chat: messages,
+        currentStage: currentStage, 
+        code: code,
+        solution: solution
+      };
+      socketRef.current.emit('message', requestBody);
     } else {
       console.error('Socket.IO is not connected');
     }
   };
 
-  return { messages, sendMessage, setMessages };
+  return { messages, sendMessage, setMessages, currentStage, setCurrentStage};
 };
 
 export default useSocketIO;

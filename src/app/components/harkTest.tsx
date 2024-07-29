@@ -11,7 +11,7 @@ export default function MyHark() {
 
   const record = async () => {
     if (navigator.mediaDevices.getUserMedia) {
-      console.log("Starting to record");
+      //console.log("Starting to record");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -21,14 +21,14 @@ export default function MyHark() {
         const speech = hark(stream, {});
 
         speech.on("speaking", () => {
-          console.log("Speaking!");
+          //console.log("Speaking!");
           if (mediaRecorder && mediaRecorder.state === "inactive") {
             mediaRecorder.start();
           }
         });
 
         speech.on("stopped_speaking", () => {
-          console.log("Not Speaking");
+          //console.log("Not Speaking");
           if (mediaRecorder && mediaRecorder.state === "recording") {
             mediaRecorder.stop();
           }
@@ -36,9 +36,9 @@ export default function MyHark() {
 
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
-            console.log("blobblob");
+            //console.log("blobblob");
             const blob = e.data;
-            console.log(blob);
+            //console.log(blob);
             // Handle the blob data (e.g., upload to server, save locally, etc.)
           }
         };
@@ -46,7 +46,7 @@ export default function MyHark() {
         console.error("Error accessing media devices:", error);
       }
     } else {
-      console.log("Recording not supported");
+      //console.log("Recording not supported");
     }
   };
 

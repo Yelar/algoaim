@@ -1,6 +1,7 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
+import { log } from "console";
 
 
 interface codeEditorProps {
@@ -13,10 +14,14 @@ interface codeEditorProps {
 const CodeEditorWindow = (props : codeEditorProps) => {
   const { onChange, language, code, theme } = props;
   const [value, setValue] = useState(code || "");
-  
+  useEffect(() => {
+    setValue(code);
+  }, [])
   const handleEditorChange = (value : any) => {
     setValue(value);
     onChange("code", value);
+    //console.log(value);
+    
   };
 
   return (
@@ -24,7 +29,7 @@ const CodeEditorWindow = (props : codeEditorProps) => {
       <Editor
         height="100vh"
         width={`100%`}
-        language={language || "javascript"}
+        language={language || "cpp"}
         value={value}
         theme={theme}
         defaultValue="// some comment"

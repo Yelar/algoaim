@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import CodeEditorWindow from "./CodeEditorWindow";
 import axios from "axios";
 import useSocketIO from "@/lib/hooks/useWebsocket";
@@ -7,9 +7,11 @@ import Link from "next/link";
 import { FormEvent } from "react";
 // import { ToastContainer, toast } from "react-toastify";
 import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
-import { useAudio } from "react-use";
+import { useAudio, useScrollbarWidth } from "react-use";
 // import "react-toastify/dist/ReactToastify.css";
+import Editor from "@monaco-editor/react";
 import Message from "./Message";
+import { useRouter } from 'next/navigation'
 import { StringToBoolean } from "class-variance-authority/types";
 import {
   Dialog,
@@ -20,8 +22,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import RecordingIndicator from "./audioChat";
+import { Logo } from "../page";
 
 interface OutputDetailsType {
   // Define the structure of outputDetails
@@ -38,40 +50,17 @@ interface msg {
   content: string;
 }
 
-function Landing(){
-  // localStorage.clear(); 
-  const { messages, sendMessage, setMessages } = useSocketIO('http://localhost:3002');
+function Landing({title} : any){
+  // localStorage.clear();
+  const router = useRouter();
+  const {messages, sendMessage, setMessages,currentStage, setCurrentStage } = useSocketIO('http://localhost:3002');
   const [prompt, setPrompt] = useState('');
-  const [currentStage, setCurrentStage] = useState(0);
+  const [solution, setSolution] = useState<string>("");
+  const [language, setLanguage] = useState("cpp");
+  const [code, setCode] = useState<string>(" ");
   const { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying, audioElement, setAudioElement, audioMode, setAudioMode } = useAudioRecorder();
-  const [javascriptDefault, setJavascriptDefault] = useState(`/* 
-    Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
-
-You may assume that each input would have exactly one solution, and you may not use the same element twice.
-
-You can return the answer in any order.
-
-Example 1:
-
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
-Example 2:
-
-Input: nums = [3,2,4], target = 6
-Output: [1,2]
-Example 3:
-
-Input: nums = [3,3], target = 6
-Output: [0,1]*/
-
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        
-    }
-};
-`);
+  const [javascriptDefault, setJavascriptDefault] = useState(`
+` );
   
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -81,42 +70,96 @@ public:
   const [audioResBlob, setAudioResBlob] = useState<Blob | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [clickCount, setClickCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(1800); // Set initial time left in seconds
+
+  useEffect(() => {
+    const timeObject = localStorage.getItem("time");
+    if (timeObject)
+    //console.log(timeObject);
+    
+    if (timeObject) {
+      setTimeLeft(JSON.parse(timeObject).time)
+    }
+    
+      
+
+    // Countdown timer
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev > 0) {
+          //console.log(prev);
+      
+      localStorage.setItem("time", JSON.stringify({time: prev}));
+          return prev - 1;
+        } else {
+          router.push(`/dashboard/problems/${title}/eval`);
+          clearInterval(timer);
+          return 0;
+        }
+      });
+      
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+  useEffect(() => {
+    localStorage.setItem("time", JSON.stringify({time: timeLeft}));
+  }, [timeLeft]);
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
   useEffect(() => {
     const processAudioBlob = async () => {
 
       if (audioBlob !== null && !isRecording && (audioElement === null || audioElement.paused === true) && audioMode === true) {
 
-        console.log("y");
-        console.log(audioBlob);
-        const requestBody = {
-          chat: messages,
-          currentStage: currentStage
-        };
+        //console.log("y");
+        //console.log(audioBlob);
+        let reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+    let base64 = "";
+    reader.onloadend = async function () {
+      let base64String = reader.result;
+      const requestBody = {
+        base64: base64String,
+        chat: messages,
+        currentStage: currentStage,
+        code: code,
+        solution: solution
+      };
+      
+      try {
         
-        try {
-          await sendAudioToBackend();
-          const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
-          
-          const data = res.data;
-          
-          if (data.chat !== undefined) {
-            const updatedMessages = [...messages, ...data.chat];
-            setMessages(updatedMessages);
-            localStorage.setItem("messages", JSON.stringify(messages));
-          }
-          console.log(data.curMessage);
-          const stream = await axios.get(`http://localhost:3002/api/v1/${data.curMessage}`);
-          setAudioSrc(`http://localhost:3002/api/v1/${data.curMessage}`);
-          // const audio = new Audio(`http://localhost:3002/api/v1/${data.curMessage}`);
-          // await audio.play();
-          if (data.isOver) {
-            setCurrentStage(currentStage + 1);
-            console.log(currentStage + 1);
-          }
-          console.log(messages);
-        } catch (e) {
-          console.log("Error:", e);
+        const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
+        
+        const data = res.data;
+        if (data.chat[0].message == '') {
+          return;
         }
+        if (data.chat !== undefined) {
+          const updatedMessages = [...messages, ...data.chat];
+          setMessages(updatedMessages);
+          localStorage.setItem("messages", JSON.stringify(messages));
+        }
+        //console.log(data.curMessage);
+        const stream = await axios.get(`http://localhost:3002/api/v1/${data.curMessage}`);
+        setAudioSrc(`http://localhost:3002/api/v1/${data.curMessage}`);
+        // const audio = new Audio(`http://localhost:3002/api/v1/${data.curMessage}`);
+        // await audio.play();
+        if (data.isOver) {
+          setCurrentStage(currentStage + 1);
+          //console.log("Stage: ", currentStage + 1);
+        }
+        //console.log(messages);
+      } catch (e) {
+        //console.log("Error:", e);
+      }
+    } 
       }
     };
   
@@ -128,79 +171,121 @@ public:
       const newAudio = new Audio(audioSrc);
       setAudioElement(newAudio);
       newAudio.play().catch((error) => console.error('Error playing audio:', error));
-      console.log("it's playing");
+      //console.log("it's playing");
     }
   }, [audioSrc]);
 
 
   useEffect(() => {
-    startRecording();
-    const storedMessages = localStorage.getItem("messages");
-    console.log(storedMessages);
-    if (storedMessages) {
+    const fetchData = async () => {
       try {
-        const parsedMessages: msg[] = JSON.parse(storedMessages);
-        if (Array.isArray(parsedMessages)) {
-          setMessages(parsedMessages);
+        
+        // Fetch stored messages from local storage
+        const storedMessages = localStorage.getItem("messages");
+        const storedCode = localStorage.getItem("code");
+        const storedSolution = localStorage.getItem("solution");
+        if (storedMessages && storedCode && storedSolution) {
+          try {
+            const parsedMessages: msg[] = JSON.parse(storedMessages);
+            const parsedCode: any = JSON.parse(storedCode);
+            const parsedSolution: any = JSON.parse(storedSolution);
+            setCode(parsedCode.code);
+          
+            setSolution(parsedSolution.solution);
+            if (Array.isArray(parsedMessages)) {
+              setMessages(parsedMessages);
+            } else {
+              console.error("Stored messages are not an array");
+              setMessages([]); // Fallback to empty array
+            }
+          } catch (error) {
+            console.error("Error parsing stored messages:", error);
+            setMessages([]); // Fallback to empty array
+          }
         } else {
-          console.error("Stored messages are not an array");
-          setMessages([]); // Fallback to empty array
-        }
+          
+        // Push all requests into reqPromises
+        const reqPromises: Promise<any>[] = [
+          axios.get(`http://localhost:3002/api/v1/${title}/description`),
+          axios.get(`http://localhost:3002/api/v1/${title}/snippets`),
+          axios.get(`http://localhost:3002/api/v1/${title}/solution`)
+        ];
+
+        // Wait for all requests to complete
+        const [descriptionResponse, snippetsResponse, solutionResponse] = await Promise.all(reqPromises);
+
+        const description = descriptionResponse.data.content;
+        const snippets = snippetsResponse.data.snippets[0].code;
+        const sol = solutionResponse.data.solution;
+
+        setMessages([
+          { role: "assistant", content: "Hello, I am your interviewer. Today, you will have 30 minutes to solve this problem:" },
+          { role: "assistant", content: description },
+          { role: "assistant", content: "Once you are ready, you can start explaining your approach" }
+        ]);
+
+        //console.log("Snippets:", snippets);
+        //console.log("Solution:", sol);
+
+        setSolution(sol);
+        setCode(snippets);
+
+        localStorage.setItem("solution", JSON.stringify({ solution: sol }));
+        localStorage.setItem("code", JSON.stringify({ lang: "cpp", code: snippets }));
+}
       } catch (error) {
-        console.error("Error parsing stored messages:", error);
-        setMessages([]); // Fallback to empty array
+        console.error("Error fetching data:", error);
       }
-    }
+    };
+
+    fetchData();
   }, []);
+  // const sendAudioToBackend = async () => {
+  //   if (!audioBlob) return;
 
-  const sendAudioToBackend = async () => {
-    if (!audioBlob) return;
+  //   setIsSending(true);
 
-    setIsSending(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'recorded_audio.wav');
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append('audio', audioBlob, 'recorded_audio.wav');
       
-      console.log("haha", audioBlob);
+  //     //console.log("haha", audioBlob);
       
-      const response = await axios.post('http://localhost:3002/api/v1/upload/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+  //     const response = await axios.post('http://localhost:3002/api/v1/upload/', formData, {
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //       },
+  //     });
 
-      if (response.status === 200) {
-        console.log('Audio sent successfully');
-      } else {
-        console.error('Failed to send audio');
-      }
-    } catch (error) {
-      console.error('Error sending audio:', error);
-    } finally {
-      setIsSending(false);
+  //     if (response.status === 200) {
+  //       //console.log('Audio sent successfully');
+  //     } else {
+  //       console.error('Failed to send audio');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending audio:', error);
+  //   } finally {
+  //     setIsSending(false);
+  //   }
+  // };
+
+ useEffect(() => {
+    //console.log("changed", audioMode);
+    if (audioMode) {
+      startRecording();
+    } else {
+      stopRecording();
     }
-  };
-
- 
+ }, [audioMode]);
 
   const handleSend = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (prompt.trim() !== '') {
       let tmp = messages;
       tmp.push({role: "user", content: prompt});
-      tmp.push({role: "assistant", content: ""});
       setMessages(tmp);
-      let conversation = "Here is the previous conversation: ";
-      for (let i = 0; i < messages.length - 1; i++) {
-        conversation += messages[i].role + ": "
-        conversation += messages[i].content;
-        conversation += "\n";
-      }
-      conversation += `Keep in mind context. Answer to this:\n###\n ${prompt}. Here is current solution: ${code}`
-      console.log(conversation);
       
-      sendMessage(conversation);
+      sendMessage(code, solution);
       try {
         localStorage.setItem("messages", JSON.stringify(messages));
       } catch (error) {
@@ -211,7 +296,6 @@ public:
       
     }
   }
-  const [code, setCode] = useState<string>(javascriptDefault);
   const [customInput, setCustomInput] = useState<string>("");
   const [outputDetails, setOutputDetails] = useState<OutputDetailsType | null>(null);
   const [processing, setProcessing] = useState<boolean | null>(null);
@@ -221,6 +305,7 @@ public:
     switch (action) {
       case "code": {
         setCode(data || "");
+        localStorage.setItem("code", JSON.stringify({lang: language, code: data}));
         break;
       }
       default: {
@@ -268,11 +353,10 @@ public:
   const handleClick = async () => {
     setClickCount(prevCount => 1 + prevCount);
     if (audioElement)
-      console.log(audioElement.paused);
+      //console.log(audioElement.paused);
     
     if (isRecording) {
       stopRecording();
-      await sendAudioToBackend();
           const requestBody = {
             chat: messages,
           };
@@ -287,27 +371,50 @@ public:
               localStorage.setItem("messages", JSON.stringify(data.chat));
             }
           
-            console.log(messages);
+            //console.log(messages);
             
           } catch (e) {
-            console.log("Error:", e);
+            //console.log("Error:", e);
           }
     } else {
       startRecording();
     }
   };
+  const onLanguageChange= async (value:any) => {
+    let id = 0;
+    const snippets = await axios.get(`http://localhost:3002/api/v1/${title}/snippets`);
+    const defaultCode =snippets.data.snippets;
+    //console.log("blya", snippets.data.snippets[0].code);
+    for (let i = 0; i < 10; i++) {
+      if (defaultCode[i].langSlug === value) {
+        id = i;
+        break;
+      }
+    }
+    setLanguage(value);
+    setCode(snippets.data.snippets[id].code);
+    localStorage.setItem("code", JSON.stringify({lang: value, code: snippets.data.snippets[id].code}));
+  };
+  const handleEditorChange = (value : any) => {
+    setCode(value);
+    onChange("code", value);
+    //console.log(value);
+    localStorage.setItem("code", JSON.stringify({lang: language, code: value}));
+  };
   return (
-    <div>
+    <div className="h-screen flex flex-col">
       <header className="bg-primary text-primary-foreground">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="#" className="flex items-center gap-2" prefetch={false}>
-            <span className="text-lg font-semibold">AlgoAim</span>
+            <Logo themeProp={true}/>
+            
           </Link>
-          <nav className="hidden space-x-4 md:flex">
+          <div className="absolute top-0 mx-auto pt-6 left-1/2 flex justify-center text-2xl font-semibold text-white">{formatTime(timeLeft)}</div>
+          <nav className="hidden space-x-4 md:flex" >
             
             <Link
-              href="/eval"
-              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary-foreground focus:ring-offset-2"
+              href={`/dashboard/problems/${title}/eval`}
+              className="rounded-md px-3 py-2 text-sm font-medium hover:bg-primary/90  text-white bg-purple-400 focus:outline-none focus:ring-2 focus:ring-primary-foreground focus:ring-offset-2"
               prefetch={false}
             >
               Finish
@@ -318,28 +425,49 @@ public:
           </Button>
         </div>
       </header>
-    <div className="flex w-full h-screen">
-      <div className="w-1/2 p-4 overflow-auto">
-        <CodeEditorWindow
-          code={code}
-          onChange={onChange}
-          language={"cpp"}
-          theme={theme.value}
-        />
+    <div className="flex w-full overflow-hidden">
+      <div className="w-1/2 flex-auto">
+      <Select onValueChange={onLanguageChange} defaultValue="cpp">
+      <SelectTrigger className="w-[180px] text-white bg-slate-600">
+        <SelectValue placeholder="Select a Language" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel className=" bg-slate-600">Language</SelectLabel>
+          <SelectItem className="text-white bg-slate-600" value="cpp">C++</SelectItem>
+          <SelectItem className="text-white bg-slate-600" value="java">Java</SelectItem>
+          <SelectItem className="text-white bg-slate-600" value="python">Python</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+    <div className="overlay rounded-md overflow-hidden w-full h-full shadow-4xl">
+      <Editor
+        height="100vh"
+        width={`100%`}
+        language={language}
+        value={code}
+        theme={"vs-dark"}
+        defaultValue="// some comment"
+        onChange={handleEditorChange}
+      />
+    </div>
       </div>
       {/* Перед проигрывателем ставить надо */}
       {audio}
-      <div className="w-1/2 p-4 overflow-auto flex flex-col">
+      <div className="w-1/2 h-full flex flex-col">
         {!audioMode ? (<ul id="messages" className="flex-1 overflow-auto">
           {messages.map((cur, index) => (
             <Message key={index} role={cur.role} content={cur.content} />
           ))}
+          
         </ul>
         ) : (
           <RecordingIndicator isRecording={isRecording}/>
         )}
+        
         <div className="flex items-center space-x-4 p-2 border-t">
-        <form id="form" action="" onSubmit={handleSend}>
+          
+        <form className="w-full flex flex-row items-center" action="" onSubmit={handleSend}>
     <label className="sr-only">Your message</label>
     <div className="flex items-center px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-700 flex-1 space-x-2">
         <input id="input" value={prompt} onChange={(e) => setPrompt(e.target.value)} className="block mx-4 p-2.5 w-full text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Your message..."></input>
@@ -381,6 +509,7 @@ public:
           
           
         </div>
+        
       </div>
 
     </div>

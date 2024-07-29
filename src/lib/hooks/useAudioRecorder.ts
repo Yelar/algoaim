@@ -43,12 +43,13 @@ export const useAudioRecorder = () => {
         const speech = hark(stream, {interval: 50});
         if(audioElement?.ended || audioElement === null) {
         speech.on("speaking", () => {
-          
-            console.log('NIGGGGAAAA');
-          console.log("Speaking!");
-            recorder.start();
+              console.log("Speaking!");
+              recorder.start();
             speech.setInterval(50);
           setIsRecording(true);
+            
+            
+          
         });
       }
 
@@ -78,7 +79,10 @@ export const useAudioRecorder = () => {
 
   const stopRecording = useCallback(() => {
     if (mediaRecorder) {
+      console.log("recording stopped");
+      
       mediaRecorder.stop();
+      setAudioBlob(null);
     }
   }, [mediaRecorder]);
 
