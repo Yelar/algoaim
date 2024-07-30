@@ -7,7 +7,7 @@ interface RecordingIndicatorProps {
 
 const RecordingIndicator: React.FC<RecordingIndicatorProps> = ({ isRecording }) => {
   return (
-    <div className="flex justify-center items-center h-full">
+    <div className="flex justify-center items-center h-screen">
       <div className={`
         relative w-16 h-16 bg-gray-200 rounded-full flex justify-center items-center overflow-hidden
         ${isRecording ? 'animate-pulse' : ''}

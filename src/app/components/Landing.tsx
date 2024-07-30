@@ -1,27 +1,18 @@
 
 import React, { useEffect, useState, useRef } from "react";
-import CodeEditorWindow from "./CodeEditorWindow";
+
 import axios from "axios";
 import useSocketIO from "@/lib/hooks/useWebsocket";
 import Link from "next/link";
 import { FormEvent } from "react";
 // import { ToastContainer, toast } from "react-toastify";
 import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
-import { useAudio, useScrollbarWidth } from "react-use";
+import { useAudio } from "react-use";
 // import "react-toastify/dist/ReactToastify.css";
 import Editor from "@monaco-editor/react";
 import Message from "./Message";
 import { useRouter } from 'next/navigation'
-import { StringToBoolean } from "class-variance-authority/types";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+
 import {
   Select,
   SelectContent,
@@ -53,15 +44,16 @@ interface msg {
 function Landing({title} : any){
   // localStorage.clear();
   const router = useRouter();
-  const {messages, sendMessage, setMessages,currentStage, setCurrentStage } = useSocketIO('https://iphone-scrapping.onrender.com');
+  const {messages, sendMessage, setMessages,currentStage, setCurrentStage } = useSocketIO('http://localhost:3002');
   const [prompt, setPrompt] = useState('');
   const [solution, setSolution] = useState<string>("");
   const [language, setLanguage] = useState("cpp");
-  const [code, setCode] = useState<string>(" ");
+  const [code, setCode] = useState<string>("//Content is loading...");
   const { isRecording, audioBlob, startRecording, stopRecording, isPlaying, setIsPlaying, audioElement, setAudioElement, audioMode, setAudioMode } = useAudioRecorder();
-  const [javascriptDefault, setJavascriptDefault] = useState(`
+  const [javascriptDefault, setJavascriptDefault] = useState(`Content is loading...
 ` );
-  
+  const [loading, setLoading] = useState(true);
+
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audio, state, controls] = useAudio({
@@ -75,10 +67,12 @@ function Landing({title} : any){
   useEffect(() => {
     const timeObject = localStorage.getItem("time");
     if (timeObject)
-    //console.log(timeObject);
+    // console.log(timeObject);
+
     
     if (timeObject) {
-      setTimeLeft(JSON.parse(timeObject).time)
+      setTimeLeft(JSON.parse(timeObject).time);
+      
     }
     
       
@@ -88,8 +82,9 @@ function Landing({title} : any){
       setTimeLeft((prev) => {
         if (prev > 0) {
           //console.log(prev);
-      
+      if (prev % 10 == 0)
       localStorage.setItem("time", JSON.stringify({time: prev}));
+
           return prev - 1;
         } else {
           router.push(`/dashboard/problems/${title}/eval`);
@@ -105,6 +100,7 @@ function Landing({title} : any){
     };
   }, []);
   useEffect(() => {
+    if (timeLeft % 10 == 0)
     localStorage.setItem("time", JSON.stringify({time: timeLeft}));
   }, [timeLeft]);
   const formatTime = (seconds: number) => {
@@ -116,7 +112,7 @@ function Landing({title} : any){
   useEffect(() => {
     const processAudioBlob = async () => {
 
-      if (audioBlob !== null && !isRecording && (audioElement === null || audioElement.paused === true) && audioMode === true) {
+      if (audioBlob != null && !isRecording && (audioElement == null || audioElement.paused == true) && audioMode == true) {
 
         //console.log("y");
         //console.log(audioBlob);
@@ -135,7 +131,7 @@ function Landing({title} : any){
       
       try {
         
-        const res = await axios.post('https://iphone-scrapping.onrender.com/api/v1/response/', requestBody);
+        const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
         
         const data = res.data;
         if (data.chat[0].message == '') {
@@ -147,9 +143,9 @@ function Landing({title} : any){
           localStorage.setItem("messages", JSON.stringify(messages));
         }
         //console.log(data.curMessage);
-        const stream = await axios.get(`https://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
-        setAudioSrc(`https://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
-        // const audio = new Audio(`https://iphone-scrapping.onrender.com/api/v1/${data.curMessage}`);
+        const stream = await axios.get(`http://localhost:3002/api/v1/${data.curMessage}`);
+        setAudioSrc(`http://localhost:3002/api/v1/${data.curMessage}`);
+        // const audio = new Audio(`http://localhost:3002/api/v1/${data.curMessage}`);
         // await audio.play();
         if (data.isOver) {
           setCurrentStage(currentStage + 1);
@@ -190,7 +186,7 @@ function Landing({title} : any){
             const parsedCode: any = JSON.parse(storedCode);
             const parsedSolution: any = JSON.parse(storedSolution);
             setCode(parsedCode.code);
-          
+            
             setSolution(parsedSolution.solution);
             if (Array.isArray(parsedMessages)) {
               setMessages(parsedMessages);
@@ -198,19 +194,20 @@ function Landing({title} : any){
               console.error("Stored messages are not an array");
               setMessages([]); // Fallback to empty array
             }
+            
           } catch (error) {
             console.error("Error parsing stored messages:", error);
             setMessages([]); // Fallback to empty array
           }
+          setLoading(false);
         } else {
-          
         // Push all requests into reqPromises
         const reqPromises: Promise<any>[] = [
-          axios.get(`https://iphone-scrapping.onrender.com/api/v1/${title}/description`),
-          axios.get(`https://iphone-scrapping.onrender.com/api/v1/${title}/snippets`),
-          axios.get(`https://iphone-scrapping.onrender.com/api/v1/${title}/solution`)
+          axios.get(`http://localhost:3002/api/v1/${title}/description`),
+          axios.get(`http://localhost:3002/api/v1/${title}/snippets`),
+          axios.get(`http://localhost:3002/api/v1/${title}/solution`)
         ];
-
+        
         // Wait for all requests to complete
         const [descriptionResponse, snippetsResponse, solutionResponse] = await Promise.all(reqPromises);
 
@@ -232,12 +229,13 @@ function Landing({title} : any){
 
         localStorage.setItem("solution", JSON.stringify({ solution: sol }));
         localStorage.setItem("code", JSON.stringify({ lang: "cpp", code: snippets }));
+        setLoading(false);
+        setTimeLeft(1800);
 }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, []);
   // const sendAudioToBackend = async () => {
@@ -251,7 +249,7 @@ function Landing({title} : any){
       
   //     //console.log("haha", audioBlob);
       
-  //     const response = await axios.post('https://iphone-scrapping.onrender.com/api/v1/upload/', formData, {
+  //     const response = await axios.post('http://localhost:3002/api/v1/upload/', formData, {
   //       headers: {
   //         'Content-Type': 'multipart/form-data',
   //       },
@@ -270,10 +268,12 @@ function Landing({title} : any){
   // };
 
  useEffect(() => {
-    //console.log("changed", audioMode);
+    console.log("changed", audioMode);
     if (audioMode) {
+      
       startRecording();
     } else {
+      
       stopRecording();
     }
  }, [audioMode]);
@@ -361,7 +361,7 @@ function Landing({title} : any){
             chat: messages,
           };
           try {
-            const res = await axios.post('https://iphone-scrapping.onrender.com/api/v1/response/', requestBody);
+            const res = await axios.post('http://localhost:3002/api/v1/response/', requestBody);
           
             // Use res.data directly if it's already parsed
             const data = res.data;
@@ -382,7 +382,7 @@ function Landing({title} : any){
   };
   const onLanguageChange= async (value:any) => {
     let id = 0;
-    const snippets = await axios.get(`https://iphone-scrapping.onrender.com/api/v1/${title}/snippets`);
+    const snippets = await axios.get(`http://localhost:3002/api/v1/${title}/snippets`);
     const defaultCode =snippets.data.snippets;
     //console.log("blya", snippets.data.snippets[0].code);
     for (let i = 0; i < 10; i++) {
@@ -401,16 +401,43 @@ function Landing({title} : any){
     //console.log(value);
     localStorage.setItem("code", JSON.stringify({lang: language, code: value}));
   };
+  const [activeTab, setActiveTab] = useState('editor');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
   return (
-    <div className="h-screen flex flex-col">
+    <div>
+    {audio}
+    {loading && 
+        <div className="text-white flex flex-col w-full h-screen items-center justify-center bg-gray-900 p-4">
+
+<div role="status">
+    <svg aria-hidden="true" className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+        <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+    </svg>
+    <span className="sr-only">Loading...</span>
+</div></div>
+}
+    {!loading && <div className="h-screen flex flex-col">
       <header className="bg-primary text-primary-foreground">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="#" className="flex items-center gap-2" prefetch={false}>
+          <Link href="/dashboard" className="flex items-center gap-2" prefetch={false}>
             <Logo themeProp={true}/>
             
           </Link>
           <div className="absolute top-0 mx-auto pt-6 left-1/2 flex justify-center text-2xl font-semibold text-white">{formatTime(timeLeft)}</div>
-          <nav className="hidden space-x-4 md:flex" >
+          <nav className="space-x-4" >
             
             <Link
               href={`/dashboard/problems/${title}/eval`}
@@ -420,14 +447,34 @@ function Landing({title} : any){
               Finish
             </Link>
           </nav>
-          <Button variant="outline" size="sm" className="md:hidden">
-            <span className="sr-only">Toggle menu</span>
-          </Button>
         </div>
       </header>
-    <div className="flex w-full overflow-hidden">
-      <div className="w-1/2 flex-auto">
-      <Select onValueChange={onLanguageChange} defaultValue="cpp">
+      {isMobile && (
+        <div className="flex justify-center space-x-4 mt-4 py-1">
+          <Button
+            onClick={() => setActiveTab('editor')}
+            className={`px-4 py-2 rounded ${
+              activeTab === 'editor' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
+            }`}
+          >
+            Editor
+          </Button>
+          <Button
+            onClick={() => setActiveTab('chat')}
+            className={`px-4 py-2 rounded ${
+              activeTab === 'chat' ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
+            }`}
+          >
+            Chat
+          </Button>
+        </div>
+      )}
+      <div className="flex flex-col md:flex-row w-full overflow-hidden">
+      
+      <div 
+        className={`w-full md:w-1/2 flex-auto ${isMobile && activeTab !== 'editor' ? 'hidden' : ''}`}
+      >
+        <Select onValueChange={onLanguageChange} defaultValue="cpp">
       <SelectTrigger className="w-[180px] text-white bg-slate-600">
         <SelectValue placeholder="Select a Language" />
       </SelectTrigger>
@@ -451,10 +498,11 @@ function Landing({title} : any){
         onChange={handleEditorChange}
       />
     </div>
+
       </div>
-      {/* Перед проигрывателем ставить надо */}
-      {audio}
-      <div className="w-1/2 h-full flex flex-col">
+      <div 
+        className={`w-full md:w-1/2 h-full flex flex-col ${isMobile && activeTab !== 'chat' ? 'hidden' : ''}`}
+      >
         {!audioMode ? (<ul id="messages" className="flex-1 overflow-auto">
           {messages.map((cur, index) => (
             <Message key={index} role={cur.role} content={cur.content} />
@@ -497,22 +545,14 @@ function Landing({title} : any){
             </svg>
           </Button>
 </form>
-          {/* <form id="form" action="" onSubmit={handleSend} className="flex-1 flex items-center space-x-2">
-            <input
-              id="input"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="p-2 border rounded flex-1"
-            />
-            <button type="submit" className="p-2 bg-blue-500 text-white rounded">Send</button>
-          </form> */}
-          
-          
         </div>
-        
+
       </div>
 
+      
     </div>
+    
+    </div>}
     </div>
   );
 };

@@ -44,12 +44,10 @@ export const useAudioRecorder = () => {
         if(audioElement?.ended || audioElement === null) {
         speech.on("speaking", () => {
               console.log("Speaking!");
+              console.log("audioMode: ", audioMode);
               recorder.start();
-            speech.setInterval(50);
+            speech.setInterval(150);
           setIsRecording(true);
-            
-            
-          
         });
       }
 
@@ -75,12 +73,11 @@ export const useAudioRecorder = () => {
       console.log("Recording not supported");
     }
     
-  }, []);
+  }, [audioElement, audioMode]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorder) {
       console.log("recording stopped");
-      
       mediaRecorder.stop();
       setAudioBlob(null);
     }
