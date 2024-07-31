@@ -32,7 +32,7 @@ export const useAudioRecorder = () => {
     //   })
     //   .catch(error => console.error('Error accessing microphone:', error));
     if (navigator.mediaDevices.getUserMedia) {
-      console.log("Starting to record");
+      // console.log("Starting to record");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
@@ -43,8 +43,8 @@ export const useAudioRecorder = () => {
         const speech = hark(stream, {interval: 50});
         if(audioElement?.ended || audioElement === null) {
         speech.on("speaking", () => {
-              console.log("Speaking!");
-              console.log("audioMode: ", audioMode);
+              // console.log("Speaking!");
+              // console.log("audioMode: ", audioMode);
               recorder.start();
             speech.setInterval(150);
           setIsRecording(true);
@@ -52,7 +52,7 @@ export const useAudioRecorder = () => {
       }
 
         speech.on("stopped_speaking", () => {
-          console.log("Not Speaking");
+          // console.log("Not Speaking");
             recorder.stop();
             speech.setInterval(50);
           setIsRecording(false);
@@ -61,7 +61,7 @@ export const useAudioRecorder = () => {
           if (e.data.size > 0) {
             const blob = e.data;
             setAudioBlob(blob);
-            console.log(blob);
+            // console.log(blob);
             
             // Handle the blob data (e.g., upload to server, save locally, etc.)
           }
@@ -70,14 +70,14 @@ export const useAudioRecorder = () => {
         console.error("Error accessing media devices:", error);
       }
     } else {
-      console.log("Recording not supported");
+      // console.log("Recording not supported");
     }
     
   }, [audioElement, audioMode]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorder) {
-      console.log("recording stopped");
+      // console.log("recording stopped");
       mediaRecorder.stop();
       setAudioBlob(null);
     }

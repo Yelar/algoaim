@@ -40,9 +40,9 @@ const Evaluation = ({params} : any) => {
         const title = params.title_slug;
         try {
           const question = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/${title}/questionInfo`);
-          console.log(question.data);
+          // console.log(question.data);
           const questionId = question.data.questionId;
-          console.log("sadad", questionId);
+          // console.log("sadad", questionId);
           const response = await axios.post('https://iphone-scrapping-production.up.railway.app/api/v1/analyse', { chat: messages, currentStage: 5 })
           setAnalysis(response.data);
           setLoading(false);
@@ -57,7 +57,7 @@ const Evaluation = ({params} : any) => {
             questionId: questionId,
             solution_code: codee
           }
-          console.log(requestBody);
+          // console.log(requestBody);
           const res = await axios.post("https://iphone-scrapping-production.up.railway.app/api/v1/submit", requestBody);
           const submissionId = res.data.submission_id;
           // console.log("subID", submissionId);

@@ -17,7 +17,7 @@ const useSocketIO = (url: string) => {
     const socket = io(url);
 
     socket.on('connect', () => {
-      console.log('Socket.IO connection opened');
+      // console.log('Socket.IO connection opened');
     });
     
     socket.on('message', (data: any) => {
@@ -31,9 +31,10 @@ const useSocketIO = (url: string) => {
         localStorage.setItem("messages", JSON.stringify(tmp));
         return tmp;
       });
-      console.log(data);
+      // console.log(data);
       if (data.isOver){ setCurrentStage(currentStage + 1);
-      console.log("stage", currentStage + 1);}
+      // console.log("stage", currentStage + 1);
+    }
       
     });
 
@@ -42,7 +43,7 @@ const useSocketIO = (url: string) => {
     });
 
     socket.on('disconnect', () => {
-      console.log('Socket.IO connection closed');
+      // console.log('Socket.IO connection closed');
     });
 
     socketRef.current = socket;
