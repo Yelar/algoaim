@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "algoaim",
-  description: "	•	AI tool for optimizing the coding interview process, enhancing candidate evaluation, streamlining hiring decisions, and providing learning resources for job seekers and students in the tech industry."
+  description: "AI tool for optimizing the coding interview process, enhancing candidate evaluation, streamlining hiring decisions, and providing learning resources for job seekers and students in the tech industry."
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className + " h-screen"}>{children}
+      <body className={inter.className}>{children}
         <Analytics/>
 
       </body>

@@ -20,7 +20,7 @@ const Message = (props: msgProps) => {
       <div className={`flex items-start gap-4 ${role === "user" ? "justify-end" : ""}`}>
         <div 
           className={`rounded-lg p-3 max-w-[70%] overflow-auto ${
-            role === "user" ? "bg-blue-500 text-white" : "bg-gray-100 dark:bg-gray-800"
+            role === "user" ? "bg-blue-500 text-white" : "bg-gray-600 text-white"
           }`}
         >
           <div 
