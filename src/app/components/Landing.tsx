@@ -60,7 +60,7 @@ function Landing({title} : any){
     src: audioSrc || '',
   });
   const [audioResBlob, setAudioResBlob] = useState<Blob | null>(null);
-  const [isSending, setIsSending] = useState(false);
+  const isSending = useRef(false);
   const [clickCount, setClickCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(1800); // Set initial time left in seconds
 
@@ -82,6 +82,9 @@ function Landing({title} : any){
       setTimeLeft((prev) => {
         if (prev > 0) {
           //console.log(prev);
+          // console.log(audioElement);
+          // console.log(audioElement?.paused);
+          
       if (prev % 10 == 0)
       localStorage.setItem("time", JSON.stringify({time: prev}));
 
@@ -111,9 +114,11 @@ function Landing({title} : any){
 
   useEffect(() => {
     const processAudioBlob = async () => {
-
-      if (audioBlob != null && !isRecording && (audioElement == null || audioElement.paused == true) && audioMode == true) {
-
+      
+      if (audioBlob != null && !isRecording && (audioElement == null || audioElement.paused == true) && audioMode == true && isSending.current == false) {
+        // console.log("sending...",  audioElement?.paused);
+        // console.log("isSending: ", isSending.current);
+        isSending.current = true;
         //console.log("y");
         //console.log(audioBlob);
         let reader = new FileReader();
@@ -145,31 +150,35 @@ function Landing({title} : any){
         //console.log(data.curMessage);
         const stream = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
         setAudioSrc(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
-        // const audio = new Audio(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
-        // await audio.play();
+        const audio = new Audio(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
+        setAudioElement(audio);
+        audio.play();
         if (data.isOver) {
           setCurrentStage(currentStage + 1);
           //console.log("Stage: ", currentStage + 1);
         }
+        isSending.current = false;
         //console.log(messages);
       } catch (e) {
         //console.log("Error:", e);
       }
     } 
+    
       }
     };
-  
+    
+    
     processAudioBlob();
   }, [isRecording]);
   
-  useEffect(() => {
-    if (audioSrc) {
-      const newAudio = new Audio(audioSrc);
-      setAudioElement(newAudio);
-      newAudio.play().catch((error) => console.error('Error playing audio:', error));
-      //console.log("it's playing");
-    }
-  }, [audioSrc]);
+  // useEffect(() => {
+  //   if (audioSrc) {
+  //     const newAudio = new Audio(audioSrc);
+  //     setAudioElement(newAudio);
+  //     newAudio.play().catch((error) => console.error('Error playing audio:', error));
+  //     //console.log("it's playing");
+  //   }
+  // }, [audioSrc]);
 
 
   useEffect(() => {
@@ -268,7 +277,7 @@ function Landing({title} : any){
   // };
 
  useEffect(() => {
-    console.log("changed", audioMode);
+    // console.log("changed", audioMode);
     if (audioMode) {
       
       startRecording();

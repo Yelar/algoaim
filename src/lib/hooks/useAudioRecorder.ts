@@ -41,15 +41,15 @@ export const useAudioRecorder = () => {
         const recorder = new MediaRecorder(stream);
         setMediaRecorder(recorder);
         const speech = hark(stream, {interval: 50});
-        if(audioElement?.ended || audioElement === null) {
+        
         speech.on("speaking", () => {
               // console.log("Speaking!");
               // console.log("audioMode: ", audioMode);
               recorder.start();
-            speech.setInterval(150);
+            speech.setInterval(100);
           setIsRecording(true);
         });
-      }
+
 
         speech.on("stopped_speaking", () => {
           // console.log("Not Speaking");
