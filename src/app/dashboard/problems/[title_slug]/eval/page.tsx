@@ -63,7 +63,7 @@ const Evaluation = ({params} : any) => {
           // console.log("subID", submissionId);
           let checkData = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/check/${Number(submissionId)}`);
           let i = 0;
-          while(i < 5 && checkData.data.state !== "SUCCESS" ) {
+          while(i < 10 && checkData.data.state !== "SUCCESS" ) {
             // console.log(checkData.data);
             i++;
             checkData = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/check/${submissionId}`);
