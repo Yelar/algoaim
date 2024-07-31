@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { Editor } from '@monaco-editor/react';
 import Link from 'next/link';
-import { Logo } from '@/app/page';
+import { Logo } from '@/app/page'
 interface AnalysisResponse {
   positive: string[];
   negative: string[];
