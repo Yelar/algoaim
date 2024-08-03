@@ -144,8 +144,8 @@ function Landing({title} : any){
         }
         if (data.chat !== undefined) {
           const updatedMessages = [...messages, ...data.chat];
-          setMessages(updatedMessages);
-          localStorage.setItem("messages", JSON.stringify(messages));
+          setMessages(updatedMessages);          
+          localStorage.setItem("messages", JSON.stringify(updatedMessages));
         }
         //console.log(data.curMessage);
         const stream = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
@@ -400,6 +400,7 @@ function Landing({title} : any){
         break;
       }
     }
+    
     setLanguage(value);
     setCode(snippets.data.snippets[id].code);
     localStorage.setItem("code", JSON.stringify({lang: value, code: snippets.data.snippets[id].code}));
