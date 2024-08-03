@@ -43,7 +43,7 @@ const Evaluation = ({params} : any) => {
           // console.log(question.data);
           const questionId = question.data.questionId;
           // console.log("sadad", questionId);
-          const response = await axios.post('https://iphone-scrapping-production.up.railway.app/api/v1/analyse', { chat: messages, currentStage: 5 })
+          const response = await axios.post('https://iphone-scrapping-production.up.railway.app/api/v1/analyse', { chat: messages, code: code, currentStage: 5 })
           setAnalysis(response.data);
           setLoading(false);
           setIsErr(true);
