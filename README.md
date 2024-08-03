@@ -1,4 +1,3 @@
-## Не смог добавить загрузку звука из за ошибки с Landing, line 78, JSON.parse().
 
 Backend link: https://github.com/Yelar/iphone-scrapping
 
