@@ -85,7 +85,6 @@ function Landing({title} : any){
           // console.log(audioElement);
           // console.log(audioElement?.paused);
           
-      if (prev % 10 == 0)
       localStorage.setItem("time", JSON.stringify({time: prev}));
 
           return prev - 1;
@@ -103,7 +102,6 @@ function Landing({title} : any){
     };
   }, []);
   useEffect(() => {
-    if (timeLeft % 10 == 0)
     localStorage.setItem("time", JSON.stringify({time: timeLeft}));
   }, [timeLeft]);
   const formatTime = (seconds: number) => {
@@ -153,17 +151,12 @@ function Landing({title} : any){
         const audio = new Audio(`https://iphone-scrapping-production.up.railway.app/api/v1/${data.curMessage}`);
         setAudioElement(audio);
         audio.play();
-        if (data.isOver) {
-          setCurrentStage(currentStage + 1);
-          //console.log("Stage: ", currentStage + 1);
-        }
         isSending.current = false;
         //console.log(messages);
       } catch (e) {
         //console.log("Error:", e);
       }
     } 
-    
       }
     };
     
@@ -424,6 +417,15 @@ function Landing({title} : any){
 
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+  const chatContainerRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+
 
   return (
     <div>
@@ -510,18 +512,23 @@ function Landing({title} : any){
     </div>
 
       </div>
-      <div 
-        className={`w-full md:w-1/2 h-full flex flex-col ${isMobile && activeTab !== 'chat' ? 'hidden' : ''}`}
-      >
-        {!audioMode ? (<ul id="messages" className="flex-1 overflow-auto">
+      <div
+      className={`w-full md:w-1/2 h-full flex flex-col ${isMobile && activeTab !== 'chat' ? 'hidden' : ''}`}
+    >
+      {!audioMode ? (
+        <ul
+          id="messages"
+          ref={chatContainerRef}
+          className="flex-1 overflow-auto"
+          style={{ overflowY: 'scroll' }} // Ensure internal scrolling
+        >
           {messages.map((cur, index) => (
             <Message key={index} role={cur.role} content={cur.content} />
           ))}
-          
         </ul>
-        ) : (
-          <RecordingIndicator isRecording={isRecording}/>
-        )}
+      ) : (
+        <RecordingIndicator isRecording={isRecording} />
+      )}
         
         <div className="flex items-center space-x-4 p-2 border-t">
           

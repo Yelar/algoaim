@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Editor } from '@monaco-editor/react';
 import Link from 'next/link';
 import { Logo } from '@/app/page'
+
 interface AnalysisResponse {
   positive: string[];
   negative: string[];
@@ -21,14 +22,7 @@ const Evaluation = ({params} : any) => {
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [submission, setSubmission] = useState({});
   const [isErr, setIsErr] = useState<boolean>(true);
-  const [achivka, setAchivka] = useState<RuntimeMemoryProps>({
-    runtime: 0,
-  runtimePercentage: 0,
-  memory: 0,
-  memoryPercentage: 0
-  });
   const [finalCode, setFinalCode] = useState("");
   const [finalLang, setFinalLang] = useState("cpp")
   const [codeErr, setCodeErr] = useState<string>("");
@@ -51,35 +45,7 @@ const Evaluation = ({params} : any) => {
           const codee = code.code || "  ";
           setFinalCode(codee);
           setFinalLang(lang);
-          const requestBody = {
-            questionName: title,
-            language_slug:lang,
-            questionId: questionId,
-            solution_code: codee
-          }
-          // console.log(requestBody);
-          const res = await axios.post("https://iphone-scrapping-production.up.railway.app/api/v1/submit", requestBody);
-          const submissionId = res.data.submission_id;
-          // console.log("subID", submissionId);
-          let checkData = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/check/${Number(submissionId)}`);
-          let i = 0;
-          while(i < 10 && checkData.data.state !== "SUCCESS" ) {
-            // console.log(checkData.data);
-            i++;
-            checkData = await axios.get(`https://iphone-scrapping-production.up.railway.app/api/v1/check/${submissionId}`);
-          }
-          console.log(checkData.data);
-          if (checkData.data.status_msg === 'Accepted') {
-            setIsErr(false);
-            setAchivka({
-              runtime: checkData.data.status_runtime,
-              runtimePercentage: Math.floor(checkData.data.runtime_percentile),
-              memory: checkData.data.status_memory,
-              memoryPercentage: Math.floor(checkData.data.memory_percentile)
-            })
-          } else {
-            setCodeErr(checkData.data.compile_error);
-          }
+          
         } catch(error) {
           setLoading(false);
           console.error(error);
@@ -132,11 +98,8 @@ const Evaluation = ({params} : any) => {
     <h2 className="text-xl font-semibold">Suggestions</h2>
     <p className="ml-4">{analysis.suggestions}</p>
   </div>
-  <div className="mb-4">
-    <h2 className="text-xl font-semibold">Chance of Getting Job</h2>
-    <p className="ml-4 text-sd-foreground text-lg font-semibold">{analysis.chanceOfGettingJob}%</p>
-  </div>
-  {isErr ? <ErrorMessage content={codeErr} code={finalCode} lang={finalLang} /> : <RuntimeMemory {...achivka} />}
+
+
 </div>
         
         
@@ -144,101 +107,103 @@ const Evaluation = ({params} : any) => {
     </div>
   );
 };
-const ErrorMessage = ({ content, code, lang }:any) => {
-  return (
-    <div className="relative rounded-lg px-4 py-3 bg-[rgba(246,54,54,0.08)] dark:bg-[rgba(248,97,92,0.08)]">
-      <div className="z-base-1 hidden rounded border group-hover:block border-border-quaternary dark:border-border-quaternary bg-layer-02 dark:bg-layer-02 absolute right-2.5 top-2.5">
-        <div className="relative cursor-pointer flex h-[22px] w-[22px] items-center justify-center bg-layer-02 dark:bg-layer-02 hover:bg-fill-tertiary dark:hover:bg-fill-tertiary rounded-[4px]" data-state="closed">
-          <div>
-            <div data-state="closed">
-              <div className="relative text-[12px] leading-[normal] p-[1px] before:block before:h-3 before:w-3 h-3.5 w-3.5 text-text-primary dark:text-text-primary">
-                <svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="clone" className="svg-inline--fa fa-clone absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <path fill="currentColor" d="M64 464H288c8.8 0 16-7.2 16-16V384h48v64c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h64v48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16zM224 304H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H224c-8.8 0-16 7.2-16 16V288c0 8.8 7.2 16 16 16zm-64-16V64c0-35.3 28.7-64 64-64H448c35.3 0 64 28.7 64 64V288c0 35.3-28.7 64-64 64H224c-35.3 0-64-28.7-64-64z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="overflow-wrap:break-word">
-        <div className="align-middle">
-          <div className="font-menlo whitespace-pre-wrap text-[13px] leading-[21px] overflow-y-auto text-red-60 dark:text-red-60">
-            {content}
-          </div>
-        </div>
-      </div>
-      <Editor
-      height="50vh"
-      width={`100%`}
-      language={lang}
-      value={code}
-      theme={"vs-dark"}
-      defaultValue="// some comment"
-      options={{
-        readOnly: true,
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-      }}
-    />
-    </div>
-  );
-};
+
+// const ErrorMessage = ({ content, code, lang }:any) => {
+//   return (
+//     <div className="relative rounded-lg px-4 py-3 bg-[rgba(246,54,54,0.08)] dark:bg-[rgba(248,97,92,0.08)]">
+//       <div className="z-base-1 hidden rounded border group-hover:block border-border-quaternary dark:border-border-quaternary bg-layer-02 dark:bg-layer-02 absolute right-2.5 top-2.5">
+//         <div className="relative cursor-pointer flex h-[22px] w-[22px] items-center justify-center bg-layer-02 dark:bg-layer-02 hover:bg-fill-tertiary dark:hover:bg-fill-tertiary rounded-[4px]" data-state="closed">
+//           <div>
+//             <div data-state="closed">
+//               <div className="relative text-[12px] leading-[normal] p-[1px] before:block before:h-3 before:w-3 h-3.5 w-3.5 text-text-primary dark:text-text-primary">
+//                 <svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="clone" className="svg-inline--fa fa-clone absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+//                   <path fill="currentColor" d="M64 464H288c8.8 0 16-7.2 16-16V384h48v64c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V224c0-35.3 28.7-64 64-64h64v48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16zM224 304H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H224c-8.8 0-16 7.2-16 16V288c0 8.8 7.2 16 16 16zm-64-16V64c0-35.3 28.7-64 64-64H448c35.3 0 64 28.7 64 64V288c0 35.3-28.7 64-64 64H224c-35.3 0-64-28.7-64-64z"></path>
+//                 </svg>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//       <div className="overflow-wrap:break-word">
+//         <div className="align-middle">
+//           <div className="font-menlo whitespace-pre-wrap text-[13px] leading-[21px] overflow-y-auto text-red-60 dark:text-red-60">
+//             {content}
+//           </div>
+//         </div>
+//       </div>
+//       <Editor
+//       height="50vh"
+//       width={`100%`}
+//       language={lang}
+//       value={code}
+//       theme={"vs-dark"}
+//       defaultValue="// some comment"
+//       options={{
+//         readOnly: true,
+//         minimap: { enabled: false },
+//         scrollBeyondLastLine: false,
+//       }}
+//     />
+//     </div>
+//   );
+// };
 
 
-const RuntimeMemory: React.FC<RuntimeMemoryProps> = ({ runtime, runtimePercentage, memory, memoryPercentage }) => {
+// const RuntimeMemory: React.FC<RuntimeMemoryProps> = ({ runtime, runtimePercentage, memory, memoryPercentage }) => {
 
-  return (
-    <>
-      <div className="bg-gray-800 p-6 rounded-lg rounded-sd group flex min-w-[275px] flex-1 cursor-pointer flex-col px-4 py-3 text-xs transition hover:opacity-100 bg-sd-accent">
-        <div className="flex justify-between gap-2">
-          <div className="text-sd-foreground flex items-center gap-1">
-            <div className="relative text-[12px] leading-[normal] before:block before:h-3 before:w-3">
-              <ClockIcon className="h-[24px] w-[24px]" />
-            </div>
-            <div className="flex-1 text-sm text-white">Runtime</div>
-          </div>
-        </div>
-        <div className="mt-2 flex items-center gap-1 text-white">
-          <span className="text-sd-foreground text-lg font-semibold">{runtime}</span>
-          <span className="text-sd-muted-foreground text-sm">ms</span>
-          <div className="bg-divider-2 dark:bg-dark-divider-2 w-px border-sd-border mx-1 h-3"></div>
-          <span className="text-sd-muted-foreground capitalize">Beats</span>
-          <span className="text-sd-foreground text-lg font-semibold">{runtimePercentage}%</span>
-        </div>
-      </div>
-      <br />
-      <div className="bg-gray-800 p-6 rounded-lg rounded-sd group flex min-w-[275px] flex-1 cursor-pointer flex-col px-4 py-3 text-xs transition hover:opacity-100 bg-sd-accent">
-        <div className="flex justify-between gap-2">
-          <div className="text-sd-foreground flex items-center gap-1">
-            <div className="relative text-[12px] leading-[normal] before:block before:h-3 before:w-3">
-              <MemoryIcon className="" />
-            </div>
-            <div className="flex-1 text-sm text-white">Memory</div>
-          </div>
-        </div>
-        <div className="mt-2 flex items-center gap-1 text-white">
-          <span className="text-sd-foreground text-lg font-semibold">{memory}</span>
-          <span className="text-sd-muted-foreground text-sm">MB</span>
-          <div className="bg-divider-2 dark:bg-dark-divider-2 w-px border-sd-border mx-1 h-3"></div>
-          <span className="text-sd-muted-foreground capitalize">Beats</span>
-          <span className="text-sd-foreground text-lg font-semibold">{memoryPercentage}%</span>
-        </div>
-      </div>
-    </>
-  );
-};
+//   return (
+//     <>
+//       <div className="bg-gray-800 p-6 rounded-lg rounded-sd group flex min-w-[275px] flex-1 cursor-pointer flex-col px-4 py-3 text-xs transition hover:opacity-100 bg-sd-accent">
+//         <div className="flex justify-between gap-2">
+//           <div className="text-sd-foreground flex items-center gap-1">
+//             <div className="relative text-[12px] leading-[normal] before:block before:h-3 before:w-3">
+//               <ClockIcon className="h-[24px] w-[24px]" />
+//             </div>
+//             <div className="flex-1 text-sm text-white">Runtime</div>
+//           </div>
+//         </div>
+//         <div className="mt-2 flex items-center gap-1 text-white">
+//           <span className="text-sd-foreground text-lg font-semibold">{runtime}</span>
+//           <span className="text-sd-muted-foreground text-sm">ms</span>
+//           <div className="bg-divider-2 dark:bg-dark-divider-2 w-px border-sd-border mx-1 h-3"></div>
+//           <span className="text-sd-muted-foreground capitalize">Beats</span>
+//           <span className="text-sd-foreground text-lg font-semibold">{runtimePercentage}%</span>
+//         </div>
+//       </div>
+//       <br />
+//       <div className="bg-gray-800 p-6 rounded-lg rounded-sd group flex min-w-[275px] flex-1 cursor-pointer flex-col px-4 py-3 text-xs transition hover:opacity-100 bg-sd-accent">
+//         <div className="flex justify-between gap-2">
+//           <div className="text-sd-foreground flex items-center gap-1">
+//             <div className="relative text-[12px] leading-[normal] before:block before:h-3 before:w-3">
+//               <MemoryIcon className="" />
+//             </div>
+//             <div className="flex-1 text-sm text-white">Memory</div>
+//           </div>
+//         </div>
+//         <div className="mt-2 flex items-center gap-1 text-white">
+//           <span className="text-sd-foreground text-lg font-semibold">{memory}</span>
+//           <span className="text-sd-muted-foreground text-sm">MB</span>
+//           <div className="bg-divider-2 dark:bg-dark-divider-2 w-px border-sd-border mx-1 h-3"></div>
+//           <span className="text-sd-muted-foreground capitalize">Beats</span>
+//           <span className="text-sd-foreground text-lg font-semibold">{memoryPercentage}%</span>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
 
 
-function ClockIcon({cs} : any) {
-  return(
-    <svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="clock" className=" w-3 h-3 svg-inline--fa fa-clock absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg>
-  );
-}
-function MemoryIcon({cs} : any) {
-  return(
-<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="microchip" className=" w-3 h-3 svg-inline--fa fa-microchip absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M184 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64h-8c-35.3 0-64 28.7-64 64v8H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v48H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v48H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v8c0 35.3 28.7 64 64 64h8v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h48v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h48v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h8c35.3 0 64-28.7 64-64v-8h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V280h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V184h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448v-8c0-35.3-28.7-64-64-64h-8V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H280V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H184V24zM400 128V384c0 8.8-7.2 16-16 16H128c-8.8 0-16-7.2-16-16V128c0-8.8 7.2-16 16-16H384c8.8 0 16 7.2 16 16zM192 160c-17.7 0-32 14.3-32 32V320c0 17.7 14.3 32 32 32H320c17.7 0 32-14.3 32-32V192c0-17.7-14.3-32-32-32H192zm16 48h96v96H208V208z"></path></svg>
-  );
-}
+// function ClockIcon({cs} : any) {
+//   return(
+//     <svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="clock" className=" w-3 h-3 svg-inline--fa fa-clock absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg>
+//   );
+// }
+// function MemoryIcon({cs} : any) {
+//   return(
+// <svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="microchip" className=" w-3 h-3 svg-inline--fa fa-microchip absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M184 24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64h-8c-35.3 0-64 28.7-64 64v8H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v48H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v48H24c-13.3 0-24 10.7-24 24s10.7 24 24 24H64v8c0 35.3 28.7 64 64 64h8v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h48v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h48v40c0 13.3 10.7 24 24 24s24-10.7 24-24V448h8c35.3 0 64-28.7 64-64v-8h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V280h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448V184h40c13.3 0 24-10.7 24-24s-10.7-24-24-24H448v-8c0-35.3-28.7-64-64-64h-8V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H280V24c0-13.3-10.7-24-24-24s-24 10.7-24 24V64H184V24zM400 128V384c0 8.8-7.2 16-16 16H128c-8.8 0-16-7.2-16-16V128c0-8.8 7.2-16 16-16H384c8.8 0 16 7.2 16 16zM192 160c-17.7 0-32 14.3-32 32V320c0 17.7 14.3 32 32 32H320c17.7 0 32-14.3 32-32V192c0-17.7-14.3-32-32-32H192zm16 48h96v96H208V208z"></path></svg>
+//   );
+// }
+
 const FeedbackItem = ({ text, isPositive } : any) => (
   <div className="flex items-center mb-4">
     <span className={`mr-3 text-2xl ${isPositive ? 'text-green-500' : 'text-red-500'}`}>

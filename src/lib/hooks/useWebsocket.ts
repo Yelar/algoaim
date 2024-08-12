@@ -26,15 +26,13 @@ const useSocketIO = (url: string) => {
       setMessages(prevMessages => {
         const lastMessage = prevMessages[prevMessages.length - 1].content + data.content;
         const tmp = [...prevMessages, {role: "assistant",
-            content: data.gptResponse
+            content: data.Response
         }];
+        console.log(data.Response);
         localStorage.setItem("messages", JSON.stringify(tmp));
         return tmp;
       });
       // console.log(data);
-      if (data.isOver){ setCurrentStage(currentStage + 1);
-      // console.log("stage", currentStage + 1);
-    }
       
     });
 
